@@ -15,7 +15,33 @@ install_requires = [
 setup(name='pydap.handlers.csv',
     version=version,
     description="A handler that allows Pydap to server CSV files.",
-    long_description="",
+    long_description="""
+This handler allows Pydap to serve data from a file with comma separated
+values. Here's a simple example:
+
+.. code-block:: bash
+
+    $ cat simple.csv
+    "index","temperature","site"
+    10,15.2,"Diamond_St"
+    11,13.1,"Blacktail_Loop"
+    12,13.3,"Platinum_St"
+    13,12.1,"Kodiak_Trail"
+
+Note that strings must be explicitely quoted. Additional metadata may be added
+by creating a JSON file with the same name (`simple.csv.json` in this case):
+
+.. code-block:: json
+
+    {
+        "sequence": {
+            "temperature": {
+                "units": "degC"
+            }
+        }
+    }
+
+""",
     classifiers=[
       # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
     ],
