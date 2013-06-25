@@ -48,7 +48,7 @@ by creating a JSON file with the same name (`simple.csv.json` in this case):
     keywords='csv opendap pydap dap data access',
     author='Roberto De Almeida',
     author_email='roberto@dealmeida.net',
-    url='http://pydap.org/handlers.html#csv',
+    url='https://github.com/robertodealmeida/pydap.handlers.csv',
     license='MIT',
     packages=find_packages('src'),
     package_dir = {'': 'src'},
