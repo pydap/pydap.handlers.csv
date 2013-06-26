@@ -8,6 +8,8 @@ from stat import ST_MTIME
 from email.utils import formatdate
 import json
 
+from pkg_resources import get_distribution
+
 from pydap.handlers.lib import BaseHandler, IterData, build_filter
 from pydap.model import *
 from pydap.lib import quote
@@ -19,6 +21,7 @@ class CSVHandler(BaseHandler):
 
     """This is a simple handler for CSV files."""
 
+    __version__ = get_distribution("pydap.handlers.csv").version
     extensions = re.compile(r"^.*\.csv$", re.IGNORECASE)
 
     def __init__(self, filepath):
