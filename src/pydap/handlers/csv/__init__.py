@@ -10,9 +10,8 @@ import json
 
 from pkg_resources import get_distribution
 
-from pydap.handlers.lib import BaseHandler, IterData, build_filter
+from pydap.handlers.lib import BaseHandler, IterData
 from pydap.model import *
-from pydap.lib import quote
 from pydap.exceptions import OpenFileError
 from pydap.parsers.das import add_attributes
 
@@ -52,7 +51,7 @@ class CSVHandler(BaseHandler):
             seq[var] = BaseType(var)
 
         # set the data
-        seq.data = CSVData(filepath, seq.id, seq.keys())
+        seq.data = CSVData(filepath, (seq.name, tuple(seq.keys())))
 
         # add extra attributes
         metadata = "{0}.json".format(filepath)
@@ -88,8 +87,8 @@ class CSVData(IterData):
         >>> seq['index'] = BaseType('index')
         >>> seq['temperature'] = BaseType('temperature')
         >>> seq['site'] = BaseType('site')
-        >>> seq.data = CSVData('test.csv', seq.id,
-        ...     ('index', 'temperature', 'site'))
+        >>> seq.data = CSVData('test.csv', 
+        ...     (seq.name, ('index', 'temperature', 'site')))
 
         >>> for line in seq:
         ...     print line
@@ -155,12 +154,21 @@ class CSVData(IterData):
 
     """
 
-    def __init__(
-            self, filepath, id, vars, cols=None, selection=None, slice_=None):
-        super(CSVData, self).__init__(id, vars, cols, selection, slice_)
+    def __init__(self, filepath, descr, names=None, ifilter=None, imap=None,
+                 islice=None):
         self.filepath = filepath
+        self.descr = descr
+        self.names = names or descr
 
-    def gen(self):
+        self.ifilter = ifilter or []
+        self.imap = imap or []
+        self.islice = islice or []
+
+        self.id = self.names[0]
+        self.level = 1
+
+    @property
+    def stream(self):
         """Generator that yield lines of the file."""
         try:
             fp = open(self.filepath, 'Ur')
@@ -175,10 +183,10 @@ class CSVData(IterData):
             yield row
         fp.close()
 
-    def clone(self):
+    def __copy__(self):
         """Return a lightweight copy."""
-        return self.__class__(self.filepath, self.id, self.vars[:],
-                              self.cols[:], self.selection[:], self.slice[:])
+        return self.__class__(self.filepath, self.descr, self.names,
+                              self.ifilter[:], self.imap[:], self.islice[:])
 
 
 def _test():
