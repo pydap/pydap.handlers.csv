@@ -4,15 +4,15 @@ import os
 import csv
 import re
 import time
+import copy
 from stat import ST_MTIME
 from email.utils import formatdate
 import json
 
 from pkg_resources import get_distribution
 
-from pydap.handlers.lib import BaseHandler, IterData, build_filter
+from pydap.handlers.lib import BaseHandler, IterData
 from pydap.model import *
-from pydap.lib import quote
 from pydap.exceptions import OpenFileError
 from pydap.parsers.das import add_attributes
 
@@ -52,7 +52,7 @@ class CSVHandler(BaseHandler):
             seq[var] = BaseType(var)
 
         # set the data
-        seq.data = CSVData(filepath, seq.id, seq.keys())
+        seq.data = CSVData(filepath, copy.copy(seq))
 
         # add extra attributes
         metadata = "{0}.json".format(filepath)
@@ -88,9 +88,7 @@ class CSVData(IterData):
         >>> seq['index'] = BaseType('index')
         >>> seq['temperature'] = BaseType('temperature')
         >>> seq['site'] = BaseType('site')
-        >>> seq.data = CSVData('test.csv', seq.id,
-        ...     ('index', 'temperature', 'site'))
-
+        >>> seq.data = CSVData('test.csv', seq)
         >>> for line in seq:
         ...     print line
         [10.0, 15.2, 'Diamond_St']
@@ -102,10 +100,10 @@ class CSVData(IterData):
 
         >>> for line in seq['temperature', 'site', 'index']:
         ...     print line
-        [15.2, 'Diamond_St', 10.0]
-        [13.1, 'Blacktail_Loop', 11.0]
-        [13.3, 'Platinum_St', 12.0]
-        [12.1, 'Kodiak_Trail', 13.0]
+        (15.2, 'Diamond_St', 10.0)
+        (13.1, 'Blacktail_Loop', 11.0)
+        (13.3, 'Platinum_St', 12.0)
+        (12.1, 'Kodiak_Trail', 13.0)
 
     We can iterate over children:
 
@@ -132,9 +130,9 @@ class CSVData(IterData):
 
         >>> for line in seq['site', 'temperature'][ seq.index > 10 ]:
         ...     print line
-        ['Blacktail_Loop', 13.1]
-        ['Platinum_St', 13.3]
-        ['Kodiak_Trail', 12.1]
+        ('Blacktail_Loop', 13.1)
+        ('Platinum_St', 13.3)
+        ('Kodiak_Trail', 12.1)
 
     Or slice it:
 
@@ -155,12 +153,18 @@ class CSVData(IterData):
 
     """
 
-    def __init__(
-            self, filepath, id, vars, cols=None, selection=None, slice_=None):
-        super(CSVData, self).__init__(id, vars, cols, selection, slice_)
+    def __init__(self, filepath, template, ifilter=None, imap=None,
+                 islice=None, level=0):
         self.filepath = filepath
+        self.template = template
+        self.level = level
 
-    def gen(self):
+        self.ifilter = ifilter or []
+        self.imap = imap or []
+        self.islice = islice or []
+
+    @property
+    def stream(self):
         """Generator that yield lines of the file."""
         try:
             fp = open(self.filepath, 'Ur')
@@ -175,10 +179,11 @@ class CSVData(IterData):
             yield row
         fp.close()
 
-    def clone(self):
+    def __copy__(self):
         """Return a lightweight copy."""
-        return self.__class__(self.filepath, self.id, self.vars[:],
-                              self.cols[:], self.selection[:], self.slice[:])
+        return self.__class__(self.filepath, copy.copy(self.template),
+                              self.ifilter[:], self.imap[:], self.islice[:],
+                              self.level)
 
 
 def _test():
