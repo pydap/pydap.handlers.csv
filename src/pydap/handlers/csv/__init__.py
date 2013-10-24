@@ -4,6 +4,7 @@ import os
 import csv
 import re
 import time
+import copy
 from stat import ST_MTIME
 from email.utils import formatdate
 import json
@@ -51,7 +52,7 @@ class CSVHandler(BaseHandler):
             seq[var] = BaseType(var)
 
         # set the data
-        seq.data = CSVData(filepath, (seq.name, tuple(seq.keys())))
+        seq.data = CSVData(filepath, copy.copy(seq))
 
         # add extra attributes
         metadata = "{0}.json".format(filepath)
@@ -154,18 +155,15 @@ class CSVData(IterData):
 
     """
 
-    def __init__(self, filepath, descr, names=None, ifilter=None, imap=None,
-                 islice=None):
+    def __init__(self, filepath, template, ifilter=None, imap=None,
+                 islice=None, level=0):
         self.filepath = filepath
-        self.descr = descr
-        self.names = names or descr
+        self.template = template
+        self.level = level
 
         self.ifilter = ifilter or []
         self.imap = imap or []
         self.islice = islice or []
-
-        self.id = self.names[0]
-        self.level = 1
 
     @property
     def stream(self):
@@ -185,8 +183,9 @@ class CSVData(IterData):
 
     def __copy__(self):
         """Return a lightweight copy."""
-        return self.__class__(self.filepath, self.descr, self.names,
-                              self.ifilter[:], self.imap[:], self.islice[:])
+        return self.__class__(self.filepath, copy.copy(self.template),
+                              self.ifilter[:], self.imap[:], self.islice[:],
+                              self.level)
 
 
 def _test():
@@ -198,7 +197,7 @@ if __name__ == "__main__":
     import sys
     from werkzeug.serving import run_simple
 
-    _test()
+    #_test()
 
     application = CSVHandler(sys.argv[1])
     from pydap.wsgi.ssf import ServerSideFunctions
