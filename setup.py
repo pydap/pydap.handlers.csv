@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import sys, os
 
 
-version = '0.2'
+version = '1.0.0'
 
 install_requires = [
     # List your project dependencies here.
@@ -43,12 +43,12 @@ by creating a JSON file with the same name (`simple.csv.json` in this case):
 
 """,
     classifiers=[
-      # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
+        'Programming Language :: Python :: 3'
     ],
     keywords='csv opendap pydap dap data access',
     author='Roberto De Almeida',
     author_email='roberto@dealmeida.net',
-    url='https://github.com/robertodealmeida/pydap.handlers.csv',
+    url='https://github.com/pydap/pydap.handlers.csv',
     license='MIT',
     packages=find_packages('src'),
     package_dir = {'': 'src'},
